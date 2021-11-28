@@ -1,0 +1,14 @@
+{
+  "name": "extripo",
+  "version": "0.7.0",
+  "description": "A module for serialization of class instances.",
+  "main": "src/index.js",
+  "scripts": {
+    "minify": "scripts\\minimize.bat src/index.js out/extripo.min.js"
+  },
+  "author": "hermit",
+  "license": "IDontCare",
+  "devDependencies": {
+    "mocha": "^9.1.3"
+  }
+}
