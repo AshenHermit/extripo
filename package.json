@@ -1,6 +1,6 @@
 {
   "name": "extripo",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "description": "A module for serialization of class instances.",
   "main": "src/index.js",
   "scripts": {
@@ -10,5 +10,10 @@
   "license": "IDontCare",
   "devDependencies": {
     "mocha": "^9.1.3"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/AshenHermit/extripo.git"
+  },
+  "homepage": "https://github.com/AshenHermit/extripo"
 }

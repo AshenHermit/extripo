@@ -1,4 +1,5 @@
 # Extripo
+[![Npm package version](https://badgen.net/npm/v/extripo)](https://www.npmjs.com/package/extripo)  
 A js module for serialization of class instances.  
 It has no dependencies.
 
@@ -9,7 +10,9 @@ This small module provides a class `Exportable`, with which you can make some da
 With npm:
 ```
 npm i extripo
+```
 or
+```
 npm i https://github.com/AshenHermit/extripo.git
 ```
 Or you can use minified script `out/extripo.min.js`
