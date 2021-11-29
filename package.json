@@ -1,19 +1,29 @@
 {
   "name": "extripo",
-  "version": "0.7.1",
+  "version": "0.7.2",
   "description": "A module for serialization of class instances.",
   "main": "src/index.js",
   "scripts": {
-    "minify": "scripts\\minimize.bat src/index.js out/extripo.min.js"
+    "minify": "scripts\\minimize.bat src/index.js out/extripo.min.js",
+    "test": "mocha -r chai/register-expect"
   },
   "author": "hermit",
   "license": "IDontCare",
   "devDependencies": {
+    "chai": "^4.3.4",
     "mocha": "^9.1.3"
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/AshenHermit/extripo.git"
   },
-  "homepage": "https://github.com/AshenHermit/extripo"
+  "homepage": "https://github.com/AshenHermit/extripo",
+  "keywords": [
+    "import",
+    "export",
+    "data",
+    "serialization",
+    "json",
+    "copy"
+  ]
 }

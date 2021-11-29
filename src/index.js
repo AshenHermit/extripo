@@ -156,6 +156,7 @@ function processContainerValue(processCb, container, value, key){
  * @returns {Dict} new dict
  */
 function processDict(dict, processCb){
+    if(dict===null || dict===undefined) return null
     var newDict = Object.assign({}, dict)
     Object.keys(newDict).forEach(key => {
         processContainerValue(processCb, newDict, newDict[key], key)
@@ -174,6 +175,7 @@ function processDict(dict, processCb){
  * @returns {Array} new array
  */
 function processArray(array, processCb){
+    if(array===null || array===undefined) return null
     var newArray = Array.from(array)
     newArray.forEach((value, i)=>{
         processContainerValue(processCb, newArray, value, i)
@@ -219,6 +221,7 @@ class Exportable{
         })
     }
     static importArray(rawDataArray, exportableItemClass){
+        if(!exportableItemClass) return rawDataArray
         return processArray(rawDataArray, (array, rawData, i)=>{
             return new exportableItemClass().importData(rawData)
         })
@@ -230,6 +233,7 @@ class Exportable{
         })
     }
     static importDict(rawDictData, exportableItemClass){
+        if(!exportableItemClass) return rawDictData
         return processDict(rawDictData, (dict, rawData, key)=>{
             return new exportableItemClass().importData(rawData)
         })
