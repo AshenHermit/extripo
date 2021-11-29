@@ -3,7 +3,7 @@
 A js module for serialization of class instances.  
 It has no dependencies.
 
-## It's all about data serialization.  
+## It's all about storing data.  
 This small module provides a class `Exportable`, with which you can make some data class, add in it some fields, arrays, dictionaries, containing also instances of other classes and export an instance of that class into a simple nested dictionary, or import that dictionary and get full featured class instance with data that you imported.   
 
 ## Installation
@@ -15,9 +15,13 @@ or
 ```
 npm i https://github.com/AshenHermit/extripo.git
 ```
-Or you can use minified script `out/extripo.min.js`
+Or you can use minified script `build/extripo.min.js`
 ```html
-<script src="https://raw.githubusercontent.com/AshenHermit/extripo/master/out/extripo.min.js"></script>
+<script src="https://raw.githubusercontent.com/AshenHermit/extripo/master/build/extripo.min.js"></script>
+```
+And then get items from it like so
+```javascript
+var {Exportable, FC} = extripo
 ```
 
 ## Usage
@@ -71,7 +75,7 @@ class Furniture{type=""}
 <td> 
 
 ```javascript
-const { Exportable, FC } = require("./src");
+const { Exportable, FC } = require("extripo");
 
 class Room extends Exportable{
     constructor(area){

@@ -56,8 +56,18 @@ class Complaint extends Exportable{
         return this.message
     }
 }
-class Person extends Exportable{name=""}
-class Furniture extends Exportable{type=""}
+class Person extends Exportable{
+    constructor(name=""){
+        super()
+        this.name = name
+    }
+}
+class Furniture extends Exportable{
+    constructor(type=""){
+        super()
+        this.type = type
+    }
+}
 
 function nullArgTest(func, ...nullArgs){
     it("should return null with args: "+JSON.stringify(nullArgs.map(x=>!!x ? typeof x : null )), ()=>{
@@ -73,9 +83,13 @@ function nullArgReturnTest(func, argType, expectReturn, ...nullArgs){
 
 describe("Exportable", ()=>{
     var room = new Room(16)
-    var roomData = {"settler":null,"furniture":{},"complaints":[],"area":16}
+    room.settler = new Person("guy")
+    room.furniture["table"] = new Furniture("table")
+    room.complaints.push(new Complaint("keke"))
+    room.complaints.push(new Complaint("no"))
+    var roomData = {"settler":{"name":"guy"},"furniture":{"table":{"type":"table"}},"complaints":[{"message":"keke"}, {"message":"no"}],"area":16}
 
-    describe("#exportArray", ()=>{
+    describe(".exportArray", ()=>{
         nullArgTest(Exportable.exportArray, null)
         
         var array = Exportable.exportArray([room, null])
@@ -83,7 +97,7 @@ describe("Exportable", ()=>{
             expect(array).to.eql([roomData, null])
         })
     })
-    describe("#importArray", ()=>{
+    describe(".importArray", ()=>{
         var rawData = [roomData, null]
         nullArgTest(Exportable.importArray, null)
         nullArgTest(Exportable.importArray, null, Room)
@@ -92,7 +106,7 @@ describe("Exportable", ()=>{
         var array = Exportable.importArray(rawData, Room)
         Room.validate(array[0], "element")
     })
-    describe("#exportDict", ()=>{
+    describe(".exportDict", ()=>{
         nullArgTest(Exportable.exportDict, null)
 
         var dict = Exportable.exportDict({a: room, b: null})
@@ -100,7 +114,7 @@ describe("Exportable", ()=>{
             expect(dict).to.eql({a: roomData, b: null})
         })
     })
-    describe("#importDict", ()=>{
+    describe(".importDict", ()=>{
         var rawData = {a: roomData, b: null}
         nullArgTest(Exportable.importDict, null)
         nullArgTest(Exportable.importDict, null, Room)
@@ -110,8 +124,66 @@ describe("Exportable", ()=>{
         Room.validate(dict["a"], "element")
     })
 
-    // describe("#importDict", ()=>{
-    //     var dict = Exportable.importDict({a: roomData, b: null}, Room)
-    //     Room.validate(dict["a"], "element")
-    // })
+    describe(".exportData", ()=>{
+        var data = room.exportData()
+        it("export data structure check", ()=>{
+            expect(data).to.eql(roomData)
+        })
+    })
+    describe(".importData", ()=>{
+        nullArgTest(new Room().importData, null)
+
+        var newRoom = new Room().importData(roomData)
+
+        Room.validate(newRoom, "instance")
+
+        it("some inner instance is valid", ()=>{
+            assert.ok(newRoom.complaints, "has expected array")
+            assert.ok(newRoom.complaints.length == roomData.complaints.length, "array has expected size")
+            newRoom.complaints.forEach((cmp, i)=>{
+                var num = "["+i+"] "
+                assert.ok(cmp.message, num+" has expected field")
+                assert.equal(cmp.getMessage(), cmp.message, num+"method works")
+            })
+        })
+    })
+
+    describe(".exportJSON", ()=>{
+        var data = room.exportData()
+        var dataJSON = room.exportJSON()
+        it("compairing json stringified manually and from exportJSON", ()=>{
+            assert.equal(JSON.stringify(data), dataJSON, "json strings are equal")
+        })
+    })
+    describe(".importJSON", ()=>{
+        var newRoom = new Room()
+        nullArgTest(newRoom.importJSON.bind(newRoom), null)
+
+        var expectedJSON =  JSON.stringify(roomData)
+        var newRoom = room.importJSON(expectedJSON)
+        var dataJSON = newRoom.exportJSON()
+
+        it("compairing exported and imported json strings", ()=>{
+            assert.equal(dataJSON, expectedJSON, "json strings are equal")
+        })
+    })
+    describe(".create", ()=>{
+        nullArgTest(Room.create.bind(Room), null)
+
+        var expectedJSON = JSON.stringify(roomData)
+        var newRoom = room.importJSON(expectedJSON)
+        var dataJSON = newRoom.exportJSON()
+
+        it("compairing exported and imported json strings", ()=>{
+            assert.equal(dataJSON, expectedJSON, "json strings are equal")
+        })
+    })
+    describe(".copy", ()=>{
+        var expectedJSON = room.exportJSON()
+        var dataJSON = room.copy().exportJSON()
+
+        it("compairing json string before copy and after", ()=>{
+            assert.equal(expectedJSON, dataJSON, "json strings are equal")
+        })
+    })
 })
