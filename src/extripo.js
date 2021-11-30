@@ -18,17 +18,17 @@ function makeDictMaker(key, defaultValue){
 // TODO: actually this shit can be generated
 /**
  * @callback arrayOf
- * @param {String} classType
+ * @param {typeof Exportable} classType
  * @returns {Dict} some configuration
  */
 /**
  * @callback dictOf
- * @param {Exportable} classType
+ * @param {typeof Exportable} classType
  * @returns {Dict} some configuration
  */
 /**
  * @callback instanceOf
- * @param {Exportable} classType
+ * @param {typeof Exportable} classType
  * @returns {Dict} some configuration
  */
 /**
@@ -220,6 +220,9 @@ class Exportable{
             return rawArray[i]
         })
     }
+    /**
+     * @param {typeof Exportable} exportableItemClass
+     */
     static importArray(rawDataArray, exportableItemClass){
         if(!exportableItemClass) return rawDataArray
         return processArray(rawDataArray, (array, rawData, i)=>{
@@ -232,6 +235,9 @@ class Exportable{
             return rawDict[key]
         })
     }
+    /**
+     * @param {typeof Exportable} exportableItemClass
+     */
     static importDict(rawDictData, exportableItemClass){
         if(!exportableItemClass) return rawDictData
         return processDict(rawDictData, (dict, rawData, key)=>{
