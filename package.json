@@ -1,7 +1,8 @@
 {
   "name": "extripo",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "description": "A module for serialization of class instances.",
+  "main": "src/index.js",
   "module": "src/index.js",
   "scripts": {
     "minify": "scripts\\minimize.bat src/index.js out/extripo.min.js \"not in use actually\"",
