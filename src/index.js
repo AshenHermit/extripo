@@ -1,6 +1,6 @@
-const { Exportable, ExportableConfig, FC } = require("./extripo");
+const { Exportable, ExportableConfig, FC, TypeProvider } = require("./extripo");
 
-module.exports = { Exportable, ExportableConfig, FC}
+module.exports = { Exportable, ExportableConfig, FC, TypeProvider}
 
 if(false)(function(){
     var exportsCtx = null

@@ -189,3 +189,30 @@ class ComplicatedThing extends Exportable{
     }
 }
 ```
+
+If you want provide class depending on element of container and its key/index, use this:
+
+```javascript
+class DomElement extends Exportable{
+    constructor(area){
+        super()
+        this.configFields({
+            children: FC.arrayOf((child, i)=>{
+                if(child.tag=="button") return ButtonClass
+                else if(child.tag=="textarea") return TextareaClass
+            }),
+
+            // bad example, in this case the best way 
+            // to implement this is to just make 
+            // a new class with fields named like these keys
+            properties: FC.arrayOf((prop, key)=>{
+                if(key=="class_list") return ClassList
+                else if(key == "events_config") return EventsProcessorConfig
+            })
+        })
+        this.children = []
+        this.properties = {}
+        this.tag = "div"
+    }
+}
+```

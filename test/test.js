@@ -1,6 +1,6 @@
 var assert = require('assert');
-const { Exportable, FC } = require("../src/index");
 const { expect } = require('chai');
+const { TypeProvider, Exportable, FC } = require('../src/extripo');
 
 class Room extends Exportable{
     constructor(area){
@@ -25,8 +25,8 @@ class Room extends Exportable{
         return this.tmpPrice
     }
 
-    static validate(object, text=""){
-        it(text+" : validating class instance", ()=>{
+    static validate(object, text="", useIt=true){
+        var func = ()=>{
             assert.equal(typeof object, "object", "valid element type")
             assert.ok(object.__export_config, "still exportable : has config")
             assert.ok(object.importData, "still exportable : has importData method")
@@ -34,7 +34,9 @@ class Room extends Exportable{
             assert.ok(object.isOccupied, "has expected method isOccupied")
             assert.ok(object.calculatePrice, "has expected method calculatePrice")
             assert.equal(object.calculatePrice(), object.area, "method works")
-        })
+        }
+        if(useIt) it(text+" : validating class instance", func)
+        else func()
     }
     static validateData(data, text=""){
         it(text+" : validating exported data", ()=>{
@@ -55,6 +57,10 @@ class Complaint extends Exportable{
     getMessage(){
         return this.message
     }
+    static validate(cmp, prefix=""){
+        assert.ok(cmp.message, prefix+"has expected field")
+        assert.equal(cmp.getMessage(), cmp.message, prefix+"method works")
+    }
 }
 class Person extends Exportable{
     constructor(name=""){
@@ -66,6 +72,47 @@ class Furniture extends Exportable{
     constructor(type=""){
         super()
         this.type = type
+    }
+}
+
+class DomElement extends Exportable{
+    constructor(area){
+        super()
+        this.configFields({
+            children: FC.arrayOf((child, i)=>{
+                if(child.tag=="button") return ButtonClass
+                else if(child.tag=="textarea") return TextareaClass
+            }),
+
+            // bad example, in this case the best way 
+            // to implement this is to just make 
+            // a new class with fields named like these keys
+            properties: FC.dictOf((prop, key)=>{
+                if(prop.tag=="button") return ButtonClass
+                else if(prop.tag=="textarea") return TextareaClass
+            })
+        })
+        this.children = []
+        this.properties = {}
+        this.tag = "div"
+    }
+}
+class ButtonClass extends DomElement{
+    constructor(){
+        super()
+        this.tag = "button"
+    }
+    click(){
+
+    }
+}
+class TextareaClass extends DomElement{
+    constructor(){
+        super()
+        this.tag = "textarea"
+    }
+    input(){
+
     }
 }
 
@@ -100,11 +147,22 @@ describe("Exportable", ()=>{
     describe(".importArray", ()=>{
         var rawData = [roomData, null]
         nullArgTest(Exportable.importArray, null)
-        nullArgTest(Exportable.importArray, null, Room)
+        nullArgTest(Exportable.importArray, null, new TypeProvider(Room))
         nullArgReturnTest(Exportable.importArray, "class", rawData, rawData, null)
         
-        var array = Exportable.importArray(rawData, Room)
+        var array = Exportable.importArray(rawData, new TypeProvider(Room))
         Room.validate(array[0], "element")
+
+        it("type provider callback test", ()=>{
+            var rawData = [roomData, null, new Complaint("keke")]
+            var array = Exportable.importArray(rawData, new TypeProvider((object, i)=>{
+                if(object.settler !== undefined) return Room
+                else return Complaint
+            }))
+            Room.validate(array[0], "element", false)
+            assert.equal(array[1], null, "null element remains null")
+            Complaint.validate(array[2])
+        })
     })
     describe(".exportDict", ()=>{
         nullArgTest(Exportable.exportDict, null)
@@ -115,13 +173,24 @@ describe("Exportable", ()=>{
         })
     })
     describe(".importDict", ()=>{
-        var rawData = {a: roomData, b: null}
+        var rawData = {room: roomData, b: null}
         nullArgTest(Exportable.importDict, null)
-        nullArgTest(Exportable.importDict, null, Room)
+        nullArgTest(Exportable.importDict, null, new TypeProvider(Room))
         nullArgReturnTest(Exportable.importDict, "class", rawData, rawData, null)
 
-        var dict = Exportable.importDict(rawData, Room)
-        Room.validate(dict["a"], "element")
+        var dict = Exportable.importDict(rawData, new TypeProvider(Room))
+        Room.validate(dict["room"], "element")
+
+        it("type provider callback test", ()=>{
+            var rawData = {"room": roomData, "null": null, "complaint": new Complaint("keke")}
+            var dict = Exportable.importDict(rawData, new TypeProvider((object, i)=>{
+                if(object.settler !== undefined) return Room
+                else return Complaint
+            }))
+            Room.validate(dict["room"], "element", false)
+            assert.equal(dict["null"], null, "null element remains null")
+            Complaint.validate(dict["complaint"])
+        })
     })
 
     describe(".exportData", ()=>{
@@ -142,9 +211,22 @@ describe("Exportable", ()=>{
             assert.ok(newRoom.complaints.length == roomData.complaints.length, "array has expected size")
             newRoom.complaints.forEach((cmp, i)=>{
                 var num = "["+i+"] "
-                assert.ok(cmp.message, num+" has expected field")
-                assert.equal(cmp.getMessage(), cmp.message, num+"method works")
+                Complaint.validate(cmp, num)
             })
+        })
+
+        it("testing type providers", ()=>{
+            // var el = new DomElement()
+            // el.children.push(new TextareaClass())
+            // el.children.push(new ButtonClass())
+            // el.properties["button"] = new ButtonClass()
+            // el.properties["textarea"] = new TextareaClass()
+            var expectData = {"children":[{"children":[],"properties":{},"tag":"textarea"},{"children":[],"properties":{},"tag":"button"}],"properties":{"button":{"children":[],"properties":{},"tag":"button"},"textarea":{"children":[],"properties":{},"tag":"textarea"}},"tag":"div"}
+            var el = new DomElement().importData(expectData)
+            assert.ok(el.children[0].input, "first array element has expected method")
+            assert.ok(el.children[1].click, "second array element has expected method")
+            assert.ok(el.properties["textarea"].input, "one dict element has expected method")
+            assert.ok(el.properties["button"].click, "another dict element has expected method")
         })
     })
 

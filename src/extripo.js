@@ -1,60 +1,75 @@
+//TODO: separating arrays, dicts and just instances is not object-oriented approach, need to refactor as soon as possible
+//TODO: after fields configuration, check if arrayOf applied only to an array, and dictOf only to a dict
 
 /**
  * @typedef {Object.<string, any>} Dict
  * @typedef {Object.<string, Exportable>} DictOfExportables
  */
 
-function makeDictMaker(key, defaultValue){
-    return function(value=null){
-        var dict = {}
-        if(defaultValue!==null && defaultValue!==undefined)
-            dict[key] = defaultValue
-        else
-            dict[key] = value
-        return dict
+
+function fieldTyperMaker(key){
+    /**
+     * @param {typeof Exportable|typeProvidingFunc} [type=null]
+     * @returns {Dict} some config
+     */
+    return function(type=null){
+        return {[key]: new TypeProvider(type)}
     }
 }
 
-// TODO: actually this shit can be generated
 /**
- * @callback arrayOf
- * @param {typeof Exportable} classType
- * @returns {Dict} some configuration
- */
-/**
- * @callback dictOf
- * @param {typeof Exportable} classType
- * @returns {Dict} some configuration
- */
-/**
- * @callback instanceOf
- * @param {typeof Exportable} classType
- * @returns {Dict} some configuration
- */
-/**
- * @callback ignore
- * @returns {Dict} some configuration
+ * @callback typeProvidingFunc
+ * @param {Dict} object
+ * @param {String|Number} key
+ * @returns {typeof Exportable} exportable type
  */
 
-var ftKeys = {
-    arrayOf: null,
-    dictOf: null,
-    instanceOf: null,
-    ignore: true
+class TypeProvider{
+    /**
+     * @param {typeof Exportable|typeProvidingFunc} type 
+     */
+    constructor(type){
+        /**@type {typeof Exportable|typeProvidingFunc}*/
+        this.type = type
+    }
+    getType(object="", key=""){
+        try{
+            new this.type()
+            return this.type
+        }catch(e){
+            return this.type(object, key)
+        }
+    }
 }
+
+var FC = {}
+// TODO: reusing code
+// actually this shit can be generated
 /**
- * FC - field typing
- * @type {{
- * arrayOf: arrayOf
- * dictOf: dictOf
- * instanceOf: instanceOf
- * ignore: ignore
- * }}
+ * @function arrayOf
+ * @param {typeof Exportable|typeProvidingFunc} [type=null]
+ * @returns {Dict} some config
  */
-var fcCtx = {}
-Object.keys(ftKeys).forEach(key=>{
-    fcCtx[key] = makeDictMaker(key, ftKeys[key])
-})
+FC.arrayOf = fieldTyperMaker("arrayOf")
+/**
+ * @function dictOf
+ * @param {typeof Exportable} [type=null]
+ * @returns {Dict} some config
+ */
+FC.dictOf = fieldTyperMaker("dictOf")
+/**
+ * @callback instanceOf
+ * @param {typeof Exportable} [type=null]
+ * @returns {Dict} some config
+ */
+FC.instanceOf = fieldTyperMaker("instanceOf")
+/**
+ * @function ignore
+ * @returns {Dict} some configuration
+ */
+FC.ignore = function(){
+    return {ignore: true}
+}
 
 class ExportableConfig{
     constructor(config_key="__export_config"){
@@ -100,6 +115,7 @@ class ExportableConfig{
     configFields(fields){
         Object.keys(fields).forEach((key)=>{
             var cf = fields[key]
+            
             //TODO: maybe this is a bit immobile, i mean this keys: "dictOf", "arrayOf"...
             if(cf.dictOf) this.specifyClasses({inDict: {[key]: cf.dictOf}})
             if(cf.arrayOf) this.specifyClasses({inArray: {[key]: cf.arrayOf}})
@@ -221,12 +237,14 @@ class Exportable{
         })
     }
     /**
-     * @param {typeof Exportable} exportableItemClass
+     * @param {TypeProvider} itemTypeProvider
      */
-    static importArray(rawDataArray, exportableItemClass){
-        if(!exportableItemClass) return rawDataArray
+    static importArray(rawDataArray, itemTypeProvider){
+        if(!itemTypeProvider) return rawDataArray
         return processArray(rawDataArray, (array, rawData, i)=>{
-            return new exportableItemClass().importData(rawData)
+            var type = itemTypeProvider.getType(rawData, i)
+            if(!type) return
+            return new type().importData(rawData)
         })
     }
     static exportDict(dict){
@@ -236,12 +254,14 @@ class Exportable{
         })
     }
     /**
-     * @param {typeof Exportable} exportableItemClass
+     * @param {TypeProvider} itemTypeProvider
      */
-    static importDict(rawDictData, exportableItemClass){
-        if(!exportableItemClass) return rawDictData
+    static importDict(rawDictData, itemTypeProvider){
+        if(!itemTypeProvider) return rawDictData
         return processDict(rawDictData, (dict, rawData, key)=>{
-            return new exportableItemClass().importData(rawData)
+            var type = itemTypeProvider.getType(rawData, key)
+            if(!type) return
+            return new type().importData(rawData)
         })
     }
 
@@ -322,7 +342,8 @@ class Exportable{
                 return
             }
             if(fieldKey in data)
-            this[fieldKey] = new cf.classes.ofFields[fieldKey]().importData(data[fieldKey])
+            var type = cf.classes.ofFields[fieldKey].getType()
+            this[fieldKey] = new type().importData(data[fieldKey])
         })
         
         return this
@@ -385,4 +406,5 @@ class Exportable{
 
 exports.Exportable = Exportable
 exports.ExportableConfig = ExportableConfig
-exports.FC = fcCtx
+exports.TypeProvider = TypeProvider
+exports.FC = FC
