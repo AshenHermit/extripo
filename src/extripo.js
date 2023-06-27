@@ -214,19 +214,25 @@ class Exportable{
      * }} classes 
      * @returns {ExportableConfig} config
      */
-    specifyClasses(classes){}
+    specifyClasses(classes){
+        this.__export_config.specifyClasses(classes)
+    }
     /**
      * With this method you can specify keys of fields you dont want to export
      * @param {Array.<String>} fieldsKeys 
      * @returns {ExportableConfig} config 
      */
-    ignoreFields(fieldsKeys){}
+    ignoreFields(fieldsKeys){
+        this.__export_config.ignoreFields(fieldsKeys)
+    }
     /**
      * Works like `specifyClasses` and `ignoreFields` methods, but the use is more handy
      * @param {Dict} fields
      * @returns {ExportableConfig} config
      */
-    configFields(fields){}
+    configFields(fields){
+        this.__export_config.configFields(fields)
+    }
 
 
     //TODO: looks like code reusing

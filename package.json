@@ -1,6 +1,6 @@
 {
   "name": "extripo",
-  "version": "0.8.6",
+  "version": "0.8.7",
   "description": "A module for serialization of class instances.",
   "main": "src/index.js",
   "module": "src/index.js",
